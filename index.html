@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Welcome to the leave site</title>
+    <meta name="author" content="Nergie Treats">
+    <meta name="description" content="Leave site for Mary Treats">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+    <h1>Welcome to Nergie Treats</h1>
+    <p>For countless years, Naggita's passion for creating and crafting scrumptious delicious tasty cakes and cookies
+        has been an unmatched delight.
+        <br />
+        <br />
+        Our journey began in 2018 when we unveiled our first product to the heart of Kampala, nestled in a cozy little
+        street near the illustrious Grand Market. It was here that our cookies first captured the hearts and taste buds
+        of people from every corner of the globe, from delectable soft cakes to heavenly muffins and tantalizingly pies
+        each day! Naturally, our beloved cakes had to evolve. The love and support we received from our ever-growing
+        community inspired us to explore new possibilities.
+    </p>
+
+    <label for="inputName">Search</label><br>
+    <input id="inputName" type="text" placeholder="Naggita">
+
+    <div id="data"></div>
+    <button type="button" onclick="getData()">Get the data</button>
+    <br />
+    <br />
+    <p>Here is a form to be filled</p>
+
+    <form onsubmit="event.preventDefault(); sendData();">
+        <div>
+            <label for="fullNames">Full Names</label><br>
+            <input id="fullNames" type="text" placeholder="Naggita Mary"><br><br>
+            <label for="email">Email Address</label><br>
+            <input id="email" type="email" placeholder="mn@gmail.com"><br><br>
+            <button type="submit">Submit</button>
+        </div>
+    </form>
+    <div id="formData"></div>
+
+    <script>
+        async function getData() {
+            try {
+                const name = document.getElementById('inputName').value;
+                const response = await fetch(`http://localhost:8080/leaveRequest?name=${name}`);
+                const data = await response.json();
+                console.log(data);
+
+                const dataDiv = document.getElementById('data');
+                dataDiv.innerHTML = `
+                    <p>ID: ${data.id}</p>
+                    <p>Name: ${data.name}</p>
+                    <p>Leave Type: ${data.leaveType}</p>
+                    <p>Department: ${data.department}</p>
+                    <p>Start Date: ${data.startDate}</p>
+                    <p>End Date: ${data.endDate}</p>
+                    <p>No of Days: ${data.noOfDays}</p>
+                `;
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        async function sendData() {
+            try {
+                const name = document.getElementById('fullNames').value;
+                const email = document.getElementById('email').value;
+
+                const requestData = {
+                    name: name,
+                    email: email,
+                };
+                const response = await fetch('http://localhost:8080/cakeOrderRequest', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData),
+                });
+                const data = await response.json();
+                console.log('Response from server:', data);
+
+                const dataDiv = document.getElementById('formData');
+                dataDiv.innerHTML = `
+                    <p>Server Response:</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+
+                 // Reset form fields
+                document.getElementById('fullNames').value = '';
+                document.getElementById('email').value = '';
+            } catch (error) {
+                console.error('Error sending data:', error);
+            }
+        }
+    </script>
+
+</body>
+
+</html>
