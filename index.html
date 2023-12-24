@@ -46,7 +46,7 @@
         async function getData() {
             try {
                 const name = document.getElementById('inputName').value;
-                const response = await fetch(`http://localhost:8080/leaveRequest?name=${name}`);
+                const response = await fetch(`http://localhost:8080/cakeOrdersByName?name=${name}`);
                 const data = await response.json();
                 console.log(data);
 
