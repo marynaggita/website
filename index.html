@@ -46,20 +46,28 @@
         async function getData() {
             try {
                 const name = document.getElementById('inputName').value;
-                const response = await fetch(`http://localhost:8080/cakeOrdersByName?name=${name}`);
+                const response = await fetch(`http://localhost:8080/orderSearch?name=${name}`);
                 const data = await response.json();
                 console.log(data);
 
                 const dataDiv = document.getElementById('data');
-                dataDiv.innerHTML = `
-                    <p>ID: ${data.id}</p>
-                    <p>Name: ${data.name}</p>
-                    <p>Leave Type: ${data.leaveType}</p>
-                    <p>Department: ${data.department}</p>
-                    <p>Start Date: ${data.startDate}</p>
-                    <p>End Date: ${data.endDate}</p>
-                    <p>No of Days: ${data.noOfDays}</p>
-                `;
+                dataDiv.innerHTML = '';
+
+                if (data.length > 0) {
+                    data.forEach(record => {
+                        dataDiv.innerHTML += `
+                            <div>
+                                <p>ID: ${record.id}</p>
+                                <p>Name: ${record.name}</p>
+                                <p>Email Address: ${record.email}</p>
+                                <button onclick="deleteRecord(${record.id})">Delete</button>
+                            </div>
+                            <hr>
+                        `;
+                    });
+                } else {
+                    dataDiv.innerHTML = 'No records found.';
+                }
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
