@@ -73,6 +73,24 @@
             }
         }
 
+        async function deleteRecord(id) {
+            try {
+                const response = await fetch(`http://localhost:8080/deleteOrder?id=${id}`, {
+                    method: 'DELETE',
+                });
+
+                if (response.ok) {
+                    console.log(`Record with ID ${id} deleted successfully.`);
+                    // Optionally, you can refresh the data or perform other actions after deletion.
+                    getData();
+                } else {
+                    console.error(`Failed to delete record with ID ${id}.`);
+                }
+            } catch (error) {
+                console.error('Error deleting record:', error);
+            }
+        }
+
         async function sendData() {
             try {
                 const name = document.getElementById('fullNames').value;
