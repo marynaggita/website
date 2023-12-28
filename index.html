@@ -7,6 +7,7 @@
     <meta name="author" content="Nergie Treats">
     <meta name="description" content="Leave site for Mary Treats">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 
 <body>
@@ -25,8 +26,23 @@
     <label for="inputName">Search</label><br>
     <input id="inputName" type="text" placeholder="Naggita">
 
-    <div id="data"></div>
     <button type="button" onclick="getData()">Get the data</button>
+    <div id="data"></div>
+    
+     <!-- Form for editing -->
+     <div class="popup-container" id="editForm">
+        <h2>Edit Cake Order</h2>
+        <label for="editName">Name: </label>
+        <input type="text" id="editName"> </br></br>
+        <label for="editEmail">Email: </label>
+        <input type="email" id="editEmail"> </br></br>
+        <button type="button" onclick="submitEdit()">Save</button>
+    </div>
+    
+    <!-- Overlay background -->
+    <div class="overlay" id="overlay" onclick="closePopup()"></div>
+    
+    
     <br />
     <br />
     <p>Here is a form to be filled</p>
@@ -42,26 +58,107 @@
     </form>
     <div id="formData"></div>
 
+    
     <script>
-        async function getData() {
-            try {
-                const name = document.getElementById('inputName').value;
-                const response = await fetch(`http://localhost:8080/leaveRequest?name=${name}`);
-                const data = await response.json();
-                console.log(data);
+        let editingId;
 
-                const dataDiv = document.getElementById('data');
-                dataDiv.innerHTML = `
-                    <p>ID: ${data.id}</p>
-                    <p>Name: ${data.name}</p>
-                    <p>Leave Type: ${data.leaveType}</p>
-                    <p>Department: ${data.department}</p>
-                    <p>Start Date: ${data.startDate}</p>
-                    <p>End Date: ${data.endDate}</p>
-                    <p>No of Days: ${data.noOfDays}</p>
+async function getData() {
+    try {
+        const name = document.getElementById('inputName').value;
+        const response = await fetch(`http://localhost:8080/orderSearch?name=${name}`);
+        const data = await response.json();
+        console.log(data);
+
+        const dataDiv = document.getElementById('data');
+        dataDiv.innerHTML = '';
+
+        if (data.length > 0) {
+            data.forEach(record => {
+                dataDiv.innerHTML += `
+                    <div>
+                        <p>ID: ${record.id}</p>
+                        <p>Name: ${record.name}</p>
+                        <p>Email Address: ${record.email}</p>
+                        <button onclick="openPopup(${record.id})">Edit</button>
+                        <button onclick="deleteRecord(${record.id})">Delete</button>
+                    </div>
+                    <hr>
                 `;
+            });
+        } else {
+            dataDiv.innerHTML = 'No records found.';
+        }
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    }
+}
+
+function openPopup(id) {
+    // Set the editingId and show the pop-up and overlay
+    editingId = id;
+    document.getElementById('editForm').style.display = 'block';
+    document.getElementById('overlay').style.display = 'block';
+
+    // Fetch existing data and populate the form
+    fetch(`http://localhost:8080/getOrder?id=${id}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('editName').value = data.name;
+            document.getElementById('editEmail').value = data.email;
+        })
+        .catch(error => console.error('Error fetching data for editing:', error));
+}
+
+function closePopup() {
+    // Close the pop-up and overlay
+    document.getElementById('editForm').style.display = 'none';
+    document.getElementById('overlay').style.display = 'none';
+}
+
+async function submitEdit() {
+    const editedData = {
+        id :editingId,
+        name: document.getElementById('editName').value,
+        email: document.getElementById('editEmail').value,
+    };
+
+    try {
+        const response = await fetch(`http://localhost:8080/updateOrder?id=${editingId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(editedData),
+        });
+
+        if (response.ok) {
+            console.log(`Record with ID ${editingId} updated successfully.`);
+            
+            // Close the pop-up after successful update
+            closePopup();
+        } else {
+            console.error(`Failed to update record with ID ${editingId}.`);
+        }
+    } catch (error) {
+        console.error('Error updating record:', error);
+    }
+}  
+
+        async function deleteRecord(id) {
+            try {
+                const response = await fetch(`http://localhost:8080/deleteOrder?id=${id}`, {
+                    method: 'DELETE',
+                });
+
+                if (response.ok) {
+                    console.log(`Record with ID ${id} deleted successfully.`);
+                    // Optionally, you can refresh the data or perform other actions after deletion.
+                    getData();
+                } else {
+                    console.error(`Failed to delete record with ID ${id}.`);
+                }
             } catch (error) {
-                console.error('Error fetching data:', error);
+                console.error('Error deleting record:', error);
             }
         }
 
@@ -74,7 +171,7 @@
                     name: name,
                     email: email,
                 };
-                const response = await fetch('http://localhost:8080/cakeOrderRequest', {
+                const response = await fetch('http://localhost:8080/orderRequest', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
